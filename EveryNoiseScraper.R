@@ -92,21 +92,6 @@ CitiesLikesTidyRank <- cbind(CitiesLikesTidy, Rank = 1:20)
 
 library(scales)
 
-            
-### As labels, color-stroke
-
-CitiesLikesTidyRank %>% ggplot(aes(x = City, y = Rank)) + 
-  geom_label(aes(label = Genre, col = Genre), size = 3.5, family = "Arial", label.r = unit(0.3, "lines")) + 
-  theme(legend.position = "none", axis.title.x = element_blank(), panel.background = element_blank(), axis.text.y = element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), text = element_text(size = 18, family = "Franklin Gothic Demi")) +
-  scale_y_reverse()
-
-### As labels, color-filled
-
-CitiesLikesTidyRank %>% ggplot(aes(x = City, y = Rank)) + 
-  geom_label(aes(label = Genre, fill = Genre), color = "white", family = "Arial", size = 3.5, label.padding = unit(0.5, "lines")) + 
-  theme(legend.position = "none", axis.title.x = element_blank(), panel.background = element_blank(), axis.text.y = element_blank(), axis.title.y=element_blank(), axis.ticks.y=element_blank(), text = element_text(size = 18, family = "Arial")) +
-  scale_y_reverse()
-
 ### As text with colors
 
 ggg <- CitiesLikesTidyRank %>% ggplot(aes(x = City, y = Rank)) + 
@@ -117,17 +102,3 @@ ggg <- CitiesLikesTidyRank %>% ggplot(aes(x = City, y = Rank)) +
 ggsave(file="name1.svg", units = "cm", width = 50, height = 30, path = "C:/Users/moukm/Google Drive/Birmingham - BCU/Cours/ADM7001 Major project/Brum metal, then and now/")
 
 
-
-### old stuff, fonts and all
-
-font_import()
-
-fonts()
-fonttable()
-loadfonts()
-
-ggsave("ggplot_garamond.pdf", ggg, width=20, height=4)
-
-Sys.setenv(R_GSCMD = "C:/Program Files/gs/gs9.26/bin/gswin64c.exe")
-
-embed_fonts("ggplot_garamond.pdf", outfile="ggplot_garamond_embed.pdf")
