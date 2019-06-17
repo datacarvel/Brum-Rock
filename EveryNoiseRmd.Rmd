@@ -1,0 +1,162 @@
+---
+title: "Web Scraping : EveryNoise.com"
+subtitle: "EveryNoise.com's Every Place At Once data for a few selected cities"
+author: "Steve Carufel"
+date: "First completed on April 12, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+# Main goal
+
+This project aims to show which music genres are "particularly liked" by a couple of cities in the UK, and compare them. EveryNoise.com is a website that visualize Spotify's streaming data on multiple dimensions. Every Place At Once looks at individual cities, for instance.
+
+## How does the data looks like online
+
+![](http://scarufel.com/wp-content/uploads/2019/06/ForEveryNoiseRmd_done.png)
+
+## The end result in R
+
+![](http://scarufel.com/wp-content/uploads/2019/06/ForEveryNoiseRmd_ResultInR.png)
+
+## The net end result for ths project (after playing with it in Illustrator)
+
+![](http://scarufel.com/wp-content/uploads/2019/06/EveryNoise_Viz1.png)
+
+## So let's get going !
+
+Loading the required packages...
+
+```{r message = FALSE, warning = FALSE}
+library(httr)
+library(httpuv)
+library(tidyverse)
+library(showtext)
+library(rlist)
+library(rvest)
+library(RColorBrewer)
+library(colorRamps)
+library(grDevices)
+library(scales)
+```
+
+### For an easier understanding, I'll start here with one city only. Birmingham sounds like a good one.
+
+### Grabbing the html page from EveryNoise. This stores the html page's code in R.
+
+```{r message = FALSE}
+BirminghamReaded <- read_html("http://everynoise.com/everyplace.cgi?root=Birmingham%20GB&scope=all")
+```
+
+#### Grabbing the genres specifically, CSS information was found by inspecting the items on the webpage (which can be done, in your web browser by right-clicking the text or data you want to grab and choose "Inspect" and then "Copy Selector" or something similar while looking at it selected in the page source code).
+
+```{r message = TRUE}
+BirminghamList <- html_text(html_node(BirminghamReaded, css = "div.note > div"))
+print(BirminghamList) ### How our data looks like
+```
+
+#### A wild set of "/n" appears! So we'll get rid of them, but first we'll actually use them to separate our elements. In the *strsplit* function below, the argument "/n" is the separator - which characters are to be used to separate and distinguish our actual data.
+
+```{r message = TRUE}
+BirminghamGenresL <- strsplit(BirminghamList, "\n")
+print(BirminghamGenresL)
+```
+
+### Now it's a list, but it will probably be more useful as a vector
+
+```{r message = TRUE}
+BirminghamGenresV <- unlist(BirminghamGenresL)
+print(BirminghamGenresV)
+```
+
+#### Because our first few characters were "/n", our first value is now an empty string, we can see it easily in the console so now we can just remove it by telling R to remove the first value in BirminghamGenresV
+
+```{r message = TRUE}
+BirminghamGenresV <- BirminghamGenresV[-1]
+print(BirminghamGenresV)
+```
+
+#### It works! We got ourselves a vector of music genres that are especially popular in Birmingham. Now we'll create a function to do this for all of our big or medium cities of interest.
+
+#### In what follows, we put everything we did above in one single function that does all the job.
+
+#### Note that to do this for every city of interest, we need the URL of every city's unique page. In this case, it is easy, because the URL acts like a set of parameters. In our URL above with Birmingham, we can simply replace it with another city name like "London" or "Leeds". The city name is the only difference between our URLs.
+
+```{r message = FALSE}
+Cities <- c("London", "Birmingham", "Manchester", "Leeds", "Sheffield", "Glasgow", "Edinburgh", "Bristol", "Liverpool", "Bradford", "Cardiff", "Belfast")
+```
+
+#### The function below will, for a given city, generate the URL, read and store the html page, grab the data it needs, clean it, convert it into a vector that makes sense. It also limits the number of values to twenty, because I don't want more than that. Finally, it converts the values into factors (discrete).
+
+```{r message = FALSE}
+ParticularLikesFUN <- function(x) {
+  City <- x # The function's main input is one single city, not all 12 of them
+  City_EN_URL <- str_c("http://everynoise.com/everyplace.cgi?root=", City, "%20GB&scope=all", sep = "", collapse = NULL) 
+  City_Readed <- read_html(City_EN_URL)
+  City_Genres <- html_text(html_node(City_Readed, css = "div.note > div"))
+  City_GenreL <- strsplit(City_Genres, "\n")
+  City_GenreV <- unlist(City_GenreL)
+  City_GenreV <- City_GenreV[-1]
+  City_GenreV <- City_GenreV[1:20]
+  factor(City_GenreV)
+  print(City_GenreV)
+}
+```
+
+### Now we haven't done the scraping just yet, we just defined the function that will do it.
+
+### The function alone as designed can only do it to one single city, not all of them.
+
+### To do it on all of them, we'll of course use the apply function family.
+
+```{r message = TRUE}
+ParticularLikesAllCities <- lapply(Cities, ParticularLikesFUN)
+```
+
+#### Now, we got all our music genres, and at first they look as if they were all part of the same vector, but no. The sum of them is a list because we used **lapply**, which generates lists, but our list *items* are vectors.
+
+### Each item within our list represents a city, in the same order. So let's identify them as such.
+
+```{r message = TRUE}
+names(ParticularLikesAllCities) <- Cities
+print(ParticularLikesAllCities)
+CitiesLikes <- ParticularLikesAllCities # The variable was getting long to type every time so let's shorten its name
+```
+
+### Might be easier to make it a data.frame from now on.
+
+```{r message = TRUE}
+CitiesLikesDF <- as.data.frame(CitiesLikes)
+print(CitiesLikesDF)
+```
+
+### Now here comes the dplyr part. We manipulate the data so now each city is a column, in a wide format.
+
+```{r message = FALSE}
+CitiesLikesTidy <- CitiesLikesDF %>% gather(City, Genre)
+
+CitiesLikesTidyRank <- cbind(CitiesLikesTidy, Rank = 1:20) # Keeping track of their initial order (top = most particularly liked)
+```
+
+### Almost done. Visualizing the whole thing.
+
+```{r message = TRUE, fig.width=20, fig.height=5}
+CitiesLikesTidyRank %>% 
+  ggplot(aes(x = City, y = Rank)) + 
+  geom_text(aes(label = Genre, col = Genre), size = 3.5) + 
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_blank(), 
+    panel.background = element_blank(), 
+    axis.text.y = element_blank(), 
+    axis.title.y=element_blank(), 
+    axis.ticks.y=element_blank(), 
+    text = element_text(size = 18)
+    ) +
+  scale_y_reverse()
+```
+
+### Tadam.
