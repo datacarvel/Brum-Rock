@@ -3,8 +3,8 @@ A data investigation into Birmingham's and the West Midlands' current heavy meta
 
 2 web-scraping operations were done :
 
-Streaming data from Spotify/EveryNoise.com (Presentation-wise tutorial: https://rpubs.com/stevecarufel/WebScrapingEveryNoise)
+(Easy one) Streaming data from Spotify/EveryNoise.com using rvest (Presentation-wise tutorial: https://rpubs.com/stevecarufel/WebScrapingEveryNoise)
 (Or you can just look at the R script directly)
 
-Listed concerts data from Bandsintown.com (Presentation-wise tutorial: https://rpubs.com/stevecarufel/bandsintown_scraper)
+(Bit more complex one) Listed concerts data from Bandsintown.com using rvest and RSelenium (Presentation-wise tutorial: https://rpubs.com/stevecarufel/bandsintown_scraper)
 (Or you can just look at the R script directly)
