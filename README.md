@@ -1,5 +1,5 @@
 # Brum-Rock
-A data investigation into Birmingham's and the West Midlands' current heavy metal enthusiasm among musicians, but the analysis was actually completed for the dozen biggest cities in the UK. Story: https://t.co/x1h33V2iDd 
+A data investigation into Birmingham's and the West Midlands' current heavy metal enthusiasm among musicians, but the analysis was actually completed for the dozen biggest cities in the UK. Story: https://birminghameastside.com/the-west-midlands-gave-birth-to-heavy-metal-but-50-years-on-how-metal-is-the-region-now/
 
 2 web-scraping operations were done :
 
